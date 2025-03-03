@@ -33,7 +33,7 @@ app.post('/api/recommendations', async (req, res) => {
         console.log("Predicted Disease:", predictedDisease);
 
         // ✅ Step 2: Call Gemini API for Alternative Medicine Recommendations
-        const promptText = `Given the disease: ${predictedDisease}, suggest 5 alternative medicines and 2 conventional medicines with their exact drug names along with health precautions. Provide a disclaimer of just 2 lines that these are suggestions only.`;
+        const promptText = `Provide exactly 5 alternative medicines and 2 conventional medicines for treating ${predictedDisease}.  \n\n- For **Acupuncture**, specify **the exact points on the body** where it should be performed.  \n- For **Herbal Remedies**, list the **exact herb names**.  \n- For **Supplements**, provide the **exact supplement names**.  \n- For **Mind-Body Techniques**, specify **the exact methods or practices**.  \n\nFor each, include a **one-line health precaution**.  \nEnd with a **2-line disclaimer** stating these are suggestions only and a doctor should be consulted.`;
         
         const geminiResponse = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
