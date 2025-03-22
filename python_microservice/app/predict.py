@@ -17,8 +17,8 @@ DATASET_PATH = os.path.join(BASE_DIR, "datasets", "cleaned_synthetic_medicine_da
 MODEL_PATH = os.path.join(BASE_DIR, "python_microservice", "models", "disease_prediction_model.pkl")
 
 print("✅ Starting Prediction Service...")
-print(f"📂 Dataset Path: {DATASET_PATH}")
-print(f"📂 Model Path: {MODEL_PATH}")
+print(f" Dataset Path: {DATASET_PATH}")
+print(f" Model Path: {MODEL_PATH}")
 
 # Check if model file exists
 if not os.path.exists(MODEL_PATH):
