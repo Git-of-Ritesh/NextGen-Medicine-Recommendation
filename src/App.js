@@ -10,8 +10,8 @@ const App = () => {
   // States for ML-based recommendations
   const [symptom, setSymptom] = useState("");
   const [healthFactor, setHealthFactor] = useState("");
-  const [ageGroup, setAgeGroup] = useState("adult");
-  const [severity, setSeverity] = useState("moderate");
+  const [ageGroup, setAgeGroup] = useState("");
+  const [severity, setSeverity] = useState("");
   const [userPreference, setUserPreference] = useState("pharmaceutical");
 
   // State for Alternative Medicine Search
