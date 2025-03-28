@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import "./App.css";
 
@@ -10,51 +9,95 @@ const App = () => {
   // States for ML-based recommendations
   const [symptom, setSymptom] = useState("");
   const [healthFactor, setHealthFactor] = useState("");
-  const [ageGroup, setAgeGroup] = useState("");
-  const [severity, setSeverity] = useState("");
+  const [ageGroup, setAgeGroup] = useState("adult");
+  const [severity, setSeverity] = useState("moderate");
   const [userPreference, setUserPreference] = useState("pharmaceutical");
 
   // State for Alternative Medicine Search
   const [medicineName, setMedicineName] = useState("");
 
   // Response and error states
-  const [response, setResponse] = useState(null);
+  const [response, setResponse] = useState("");
   const [error, setError] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [eventSource, setEventSource] = useState(null);
 
-  // Handler for ML-based recommendation
+  // Cleanup function to close the streaming connection
+  useEffect(() => {
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [eventSource]);
+
+  // Handler for ML-based recommendation (Streaming)
   const handleFetchRecommendations = async () => {
+    setResponse("");
     setError("");
-    try {
-      const requestData = {
-        symptoms: symptom.trim(),
-        healthFactors: healthFactor.trim(),
-        ageGroup: ageGroup,
-        severity: severity,
-        userPreference: userPreference,
-      };
-      console.log("Sending ML Request:", requestData);
-      // Calling Node.js backend endpoint for recommendations
-      const res = await axios.post("http://localhost:5000/api/recommendations", requestData);
-      console.log("ML Response:", res.data);
-      setResponse(res.data);
-    } catch (err) {
-      console.error(err);
-      setError("Error fetching recommendations: " + (err.response?.data?.error || err.message));
-    }
-  };
+    setIsStreaming(true);
 
-  // Handler for alternative medicine search (OpenFDA)
+    try {
+        const res = await fetch("http://localhost:5000/api/recommendations/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                symptom,
+                healthFactor,
+                ageGroup,
+                severity,
+                userPreference,
+            }),
+        });
+
+        if (!res.ok || !res.body) {
+            throw new Error(`Server error: ${res.status}`);
+        }
+
+        // Read the response stream
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let finalText = "";
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            finalText += chunk;
+            setResponse((prev) => prev + chunk);
+        }
+
+        setIsStreaming(false);
+    } catch (err) {
+        setError("Error fetching recommendations: " + err.message);
+        setIsStreaming(false);
+    }
+};
+
+  
+  // Handler for alternative medicine search (Regular API Call)
   const handleFetchAlternatives = async () => {
     setError("");
+    setResponse("");
+
     try {
       const requestData = { medicineName: medicineName.trim() };
-      console.log("Sending Alternative Medicine Request:", requestData);
-      const res = await axios.post("http://localhost:5000/api/alternative-medicines", requestData);
-      console.log("Alternative Medicine Response:", res.data);
-      setResponse(res.data);
+
+      const res = await fetch("http://localhost:5000/api/alternative-medicines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setResponse(JSON.stringify(data, null, 2));
     } catch (err) {
-      console.error(err);
-      setError("Error fetching alternative medicines: " + (err.response?.data?.error || err.message));
+      setError("Error fetching alternative medicines: " + err.message);
     }
   };
 
@@ -68,7 +111,7 @@ const App = () => {
           className={`toggle-button ${mode === "recommendation" ? "active" : ""}`}
           onClick={() => {
             setMode("recommendation");
-            setResponse(null);
+            setResponse("");
             setError("");
           }}
         >
@@ -78,7 +121,7 @@ const App = () => {
           className={`toggle-button ${mode === "alternative" ? "active" : ""}`}
           onClick={() => {
             setMode("alternative");
-            setResponse(null);
+            setResponse("");
             setError("");
           }}
         >
@@ -132,8 +175,8 @@ const App = () => {
               <option value="no preference">No Preference</option>
             </select>
           </div>
-          <button onClick={handleFetchRecommendations} className="button">
-            Get Recommendations
+          <button onClick={handleFetchRecommendations} className="button" disabled={isStreaming}>
+            {isStreaming ? "Streaming..." : "Get Recommendations"}
           </button>
         </div>
       ) : (
@@ -157,27 +200,10 @@ const App = () => {
       {error && <p className="error">{error}</p>}
       {response && (
         <div className="result-container">
-          {mode === "recommendation" ? (
-            <>
-              <h3 className="result-title">Predicted Disease:</h3>
-              <p>{response.predictedDisease}</p>
-              <h3 className="result-title">Alternative Medicine Recommendations:</h3>
-              <div className="markdown">
-                <ReactMarkdown>{response.alternativeMedicine || "No recommendations available"}</ReactMarkdown>
-              </div>
-            </>
-          ) : (
-            <>
-              <h3 className="result-title">Original Medicine:</h3>
-              <p>{response.medicineName}</p>
-              <h3 className="result-title">Alternative Medicines:</h3>
-              <ul>
-                {response.alternatives && response.alternatives.map((med, index) => (
-                  <li key={index}>{med}</li>
-                ))} 
-              </ul>
-            </>
-          )}
+          <h3 className="result-title">Response:</h3>
+          <div className="markdown">
+            <ReactMarkdown>{response || "No data yet..."}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
