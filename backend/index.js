@@ -54,7 +54,7 @@ app.post("/api/recommendations/stream", async (req, res) => {
         - For **Mind-Body Techniques**, specify **the exact methods or practices**.
         
         For each, include a **one-line health precaution**.
-        End with a **2-line disclaimer** stating these are suggestions only and a doctor should be consulted.`;
+        End with a **2-line disclaimer** stating these are suggestions only and a doctor should be consulted and not to rely on this recommendations only.`;
 
         const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
@@ -114,7 +114,7 @@ app.post("/api/recommendations/stream", async (req, res) => {
         res.end();
     }
 });
-
+    
 
 /**
  * ✅ Fetch Alternative Medicines using OpenFDA API
