@@ -1,0 +1,208 @@
+/* Login.css */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .auth-container {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .left-panel {
+    flex: 1;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #ffffff;
+    padding: 2rem;
+  }
+  
+  .right-panel {
+    flex: 1;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .auth-form {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .auth-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #1F2937;
+  }
+  
+  .input-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4B5563;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #1F2937;
+    background-color: #F9FAFB;
+    border-radius: 0.5rem;
+    border: 1px solid #E5E7EB;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  .input-field:focus {
+    outline: none;
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+  
+  .auth-button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    white-space: nowrap;
+    /* vertical-align: middle; */
+    cursor: pointer;
+    user-select: none;
+    border-radius: 0.5rem;
+    color: #ffffff;
+    background-color: #007BFF;
+    border: 0;
+    transition: background-color 0.15s ease-in-out;
+    margin-bottom: 1rem;
+  }
+  
+  .auth-button:hover {
+    background-color: #0e5caf;
+  }
+  
+  .switch-mode {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: #6B7280;
+  }
+  
+  .switch-button {
+    background: none;
+    border: none;
+    color: #6366F1;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .switch-button:hover {
+    text-decoration: underline;
+  }
+  
+  .brand-name {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+  }
+  
+  .tagline {
+    font-size: 1.25rem;
+    max-width: 80%;
+    text-align: center;
+    line-height: 1.6;
+  }
+  
+  .social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 0.5rem;
+    color: #4B5563;
+    background-color: #ffffff;
+    border: 1px solid #E5E7EB;
+    margin-bottom: 1rem;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  }
+  
+  .social-button:hover {
+    background-color: #F9FAFB;
+    border-color: #D1D5DB;
+  }
+  
+  .social-icon {
+    margin-right: 0.75rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    color: #9CA3AF;
+    font-size: 0.875rem;
+  }
+  
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #E5E7EB;
+  }
+  
+  .divider-text {
+    padding: 0 1rem;
+  }
+  
+  .error-text {
+    color: #EF4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Media query for responsive design */
+  @media (max-width: 768px) {
+    .auth-container {
+      flex-direction: column;
+    }
+    
+    .left-panel {
+      min-height: 25vh;
+    }
+    
+    .right-panel {
+      flex: 2;
+    }
+  }

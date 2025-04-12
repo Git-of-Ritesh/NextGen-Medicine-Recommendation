@@ -34,7 +34,7 @@ def predict_endpoint(data: UserInput):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Fix streaming response by forwarding request to Node.js
-NODE_SERVER_URL = "http://localhost:5000/api/recommendations/stream"  # Change port if needed
+NODE_SERVER_URL = "http://localhost:5001/api/recommendations/stream"  # Change port if needed
 
 @app.get("/api/recommendations/stream")
 async def stream_recommendations():

@@ -2,19 +2,30 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const axios = require("axios");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.use(cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"],  // ✅ Allow both ports
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"]
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    maxAge: 86400  // 24 hours
 }));
 
+// ✅ Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection failed:", err));
 
 app.use(bodyParser.json());
+
+// Import routes
+const authRoutes = require('./routes/authRoute');
 
 /**
  * ✅ Streaming Recommendations Endpoint
@@ -45,16 +56,41 @@ app.post("/api/recommendations/stream", async (req, res) => {
         const predictedDisease = mlResponse.data.predicted_disease;
         console.log("Predicted Disease:", predictedDisease);
 
-        // ✅ Construct the Gemini API Prompt
-        const promptText = `Provide exactly 5 alternative medicines and 2 conventional medicines for treating ${predictedDisease}.
+        const promptText = `
+     🎯 Objective: Suggest 5 Alternative Medicines and 2 Conventional Medicines to treat the disease below. Follow the structure strictly.
 
-        - For **Acupuncture**, specify **the exact points on the body** where it should be performed.
-        - For **Herbal Remedies**, list the **exact herb names**.
-        - For **Supplements**, provide the **exact supplement names**.
-        - For **Mind-Body Techniques**, specify **the exact methods or practices**.
-        
-        For each, include a **one-line health precaution**.
-        End with a **2-line disclaimer** stating these are suggestions only and a doctor should be consulted and not to rely on this recommendations only.`;
+🦠 Disease: ${predictedDisease}
+
+---
+
+🌿 **Alternative Medicines (Provide exactly 5)**  
+For each entry, provide:
+
+1. **Name**  
+2. **Description** — What it is and how it helps  
+3. **Precaution** — One health precaution to consider
+
+Include a variety from these categories:  
+- Acupuncture → Specify exact body points  
+- Herbal Remedies → Name exact herbs  
+- Supplements → List exact supplements  
+- Mind-Body Techniques → Mention specific practices
+
+👉 **Format for each**:
+
+---
+
+💊 **Conventional Medicines (Provide exactly 2)**  
+For each entry, include:
+
+1. **Medicine Name**  
+2. **Drugs Included** — Active chemical compounds or drug names  
+3. **Precaution** — One-liner health advisory
+
+👉 **Format for each**:
+
+---
+`;
 
         const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
@@ -97,6 +133,8 @@ app.post("/api/recommendations/stream", async (req, res) => {
         });
 
         // ✅ Stream response
+        res.write(`**Predicted Disease:**\n ${predictedDisease}\n\n`);
+
         res.write(`**Alternative Medicine**\n\n`);
         alternativeMedicines.forEach((med, index) => res.write(`${index + 1}. ${med}\n`));
 
@@ -114,7 +152,7 @@ app.post("/api/recommendations/stream", async (req, res) => {
         res.end();
     }
 });
-    
+
 
 /**
  * ✅ Fetch Alternative Medicines using OpenFDA API
@@ -151,6 +189,9 @@ app.post("/api/alternative-medicines", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch alternative medicines", details: err.message });
     }
 });
+
+// Mount routes
+app.use('/api/auth', authRoutes);
 
 app.listen(PORT, () => {
     console.log(`✅ Server is running on http://localhost:${PORT}`);
