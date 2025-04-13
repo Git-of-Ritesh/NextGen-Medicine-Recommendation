@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './authPage.css';
+import AuthImage from '../../pictures/AuthImage.png'
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -175,10 +176,7 @@ const AuthPage = () => {
   return (
     <div className="auth-container">
       <div className="left-panel">
-        <div className="brand-name">Alternative Medicine</div>
-        <p className="tagline">
-          Your personalized alternative medicine recommendation system.
-        </p>
+        <img className='auth-image' src={AuthImage}></img>
       </div>
 
       <div className="right-panel">
