@@ -39,58 +39,76 @@ app.post("/api/recommendations/stream", async (req, res) => {
 
     try {
         // ✅ Validate input
-        const { symptom, healthFactor, ageGroup, severity, userPreference } = req.body;
-        if (!symptom || !healthFactor || !ageGroup || !severity || !userPreference) {
+        const { symptoms, healthFactors, ageGroup, severity } = req.body;
+        if (!symptoms || !healthFactors || !ageGroup || !severity ) {
             return res.status(400).json({ error: "All fields are required." });
         }
 
         // ✅ Call Python ML Microservice for Disease Prediction
         const mlResponse = await axios.post("http://localhost:8000/predict", {
-            symptom,
-            healthFactor,
+            symptoms,
+            healthFactors,
             ageGroup,
             severity,
-            userPreference
         }, { headers: { "Content-Type": "application/json" } });
 
         const predictedDisease = mlResponse.data.predicted_disease;
         console.log("Predicted Disease:", predictedDisease);
 
+        
         const promptText = `
-     🎯 Objective: Suggest 5 Alternative Medicines and 2 Conventional Medicines to treat the disease below. Follow the structure strictly.
-
-🦠 Disease: ${predictedDisease}
-
----
-
-🌿 **Alternative Medicines (Provide exactly 5)**  
-For each entry, provide:
-
-1. **Name**  
-2. **Description** — What it is and how it helps  
-3. **Precaution** — One health precaution to consider
-
-Include a variety from these categories:  
-- Acupuncture → Specify exact body points  
-- Herbal Remedies → Name exact herbs  
-- Supplements → List exact supplements  
-- Mind-Body Techniques → Mention specific practices
-
-👉 **Format for each**:
-
----
-
-💊 **Conventional Medicines (Provide exactly 2)**  
-For each entry, include:
-
-1. **Medicine Name**  
-2. **Drugs Included** — Active chemical compounds or drug names  
-3. **Precaution** — One-liner health advisory
-
-👉 **Format for each**:
-
----
-`;
+        🎯 **Objective:**  
+        Suggest **5 Alternative Medicines** and **2 Conventional Medicines** to treat the disease provided below. Present the response in clean markdown format — with headings, bold labels, bullet points or numbered items, and clear line breaks.
+        
+        🦠 **Disease:** ${predictedDisease}
+        
+        ---
+        
+        ### 🌿 Alternative Medicines (5)
+        
+        For each entry:
+        
+        - **Name:**  
+        - **Description:**  
+        - **Precaution:**  
+        - **Category:**  
+        
+        Use markdown heading \`###\` for the section title and numbered entries (\`1.\`, \`2.\` etc.).  
+        
+        ---
+        
+        ### 💊 Conventional Medicines (2)
+        
+        For each entry:
+        
+        - **Medicine Name:**  
+        - **Drugs Included:**  
+        - **Precaution:**  
+        
+        📌 **Format Example:**
+        
+        ---
+        
+        ### 🌿 Alternative Medicines
+        
+        **1. Name:** Quercetin  
+        **Description:** A plant-derived flavonoid...  
+        **Precaution:** Consult your doctor...  
+        **Category:** Supplement  
+        
+        (...and so on)
+        
+        ---
+        
+        ✅ **Important:**
+        - Output clean markdown only.
+        - No JSON, no extra titles like "Alternative Medicine", only use section headings and numbered lists.
+        - Separate sections and entries with clear line breaks.
+        - Ensure balance in alternative medicine categories.
+        
+        Return only this structured markdown.
+        `;
+           
 
         const geminiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 

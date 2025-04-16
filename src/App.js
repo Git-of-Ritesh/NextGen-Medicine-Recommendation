@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import Papa from "papaparse";
-import Dataset from "./dataset/cleaned_synthetic_medicine_dataset.csv"
+import Dataset from "./dataset/cleaned_synthetic_medicine_dataset_v2.csv"
+import ProfileImage from '../src/pictures/ProfileImage.png'
 import "./App.css";
 
 const App = () => {
+  const navigate = useNavigate();
+
   // Toggle between 'recommendation' and 'alternative'
   const [mode, setMode] = useState("recommendation");
 
@@ -55,7 +59,11 @@ const App = () => {
       .then(response => response.text())
       .then(csvtext => {
         const parsed = Papa.parse(csvtext, { header: true });
-        const uniqueFactors = [...new Set(parsed.data.map(row => row.healthfactor?.trim()))].filter(f => f);
+
+        const allFactors = parsed.data.flatMap(row => row.HealthFactors ? row.HealthFactors.split(',').map(s => s.trim()) : []);
+
+        const uniqueFactors = [...new Set(allFactors)].filter(Boolean);
+
         setHealthFactorsList(uniqueFactors);
       })
   }, []);
@@ -65,7 +73,10 @@ const App = () => {
       .then(response => response.text())
       .then(csvtext => {
         const parsed = Papa.parse(csvtext, { header: true });
-        const uniqueSymptoms = [...new Set(parsed.data.map(row => row.symptom?.trim()))].filter(f => f);
+
+        const allSymptoms = parsed.data.flatMap(row => row.Symptoms ? row.Symptoms.split(',').map(s => s.trim()) : []);
+
+        const uniqueSymptoms = [...new Set(allSymptoms)].filter(Boolean);
         setSymptomsList(uniqueSymptoms);
       })
   }, []);
@@ -102,10 +113,18 @@ const App = () => {
   }, []);
 
   //filter health factors based on search
-  const filteredHealthfactors = healthFactorsList.filter(hf => hf.toLowerCase().includes(searchHealthFactor.toLowerCase()));
+  const lastTypedHf = searchHealthFactor.split(",").pop().trim();
+  const filteredHealthfactors = healthFactorsList.filter(hf => 
+    hf.toLowerCase().includes(lastTypedHf.toLowerCase())
+  );
 
   //filter symptoms based on search
-  const filteredSymptoms = symptomsList.filter(s => s.toLowerCase().includes(searchSymptom.toLowerCase()));
+  const lastTypedWord = searchSymptom.split(",").pop().trim();
+
+  const filteredSymptoms = symptomsList.filter(s =>
+    s.toLowerCase().includes(lastTypedWord.toLowerCase())
+  );
+
 
   //handle the age group dropdown
   useEffect(() => {
@@ -164,11 +183,10 @@ const App = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          symptom: selectedSymptom,
-          healthFactor: selectedHealthFactor,  // Use selectedHealthFactor instead
+          symptoms: searchSymptom,
+          healthFactors: searchHealthFactor,
           ageGroup,
           severity,
-          userPreference,
         }),
       });
 
@@ -223,8 +241,49 @@ const App = () => {
     }
   };
 
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
   return (
     <div className="container">
+      <div className="profile-container" ref={dropdownRef}>
+        <div
+          className="profile-icon"
+          onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+        >
+          <img className="profile-image" src={ProfileImage} alt="Profile" />
+        </div>
+        {showProfileDropdown && (
+          <div className="profile-dropdown">
+            <div className="dropdown-item" onClick={() => navigate('/profile')}>
+              Profile
+            </div>
+            <div className="dropdown-item" onClick={handleLogout}>
+              Logout
+            </div>
+          </div>
+        )}
+      </div>
       <h1 className="header">Alternative Medicine Recommender</h1>
 
       {/* Toggle Buttons */}
@@ -262,33 +321,48 @@ const App = () => {
         <div className="form-section">
           <div className="form-group">
             <label className="label">Symptoms</label>
+
             <input
               type="text"
               value={searchSymptom}
               onChange={(e) => {
                 setSearchSymptom(e.target.value);
+                setSymptomSelect(true); // keep dropdown open when typing
               }}
               onClick={() => setSymptomSelect(true)}
               placeholder="e.g., headache, fever"
               className="input"
             />
-            {symptomSelect && filteredSymptoms.length > 0 &&
-              <ul className='list-group' ref={symptomRef}>
+
+            {symptomSelect && filteredSymptoms.length > 0 && (
+              <ul className="list-group" ref={symptomRef}>
                 {filteredSymptoms.map(s => (
                   <p
                     key={s}
                     value={s}
                     className="list-group-item"
                     onClick={() => {
-                      setSearchSymptom(s);
-                      setSelectedSymptom(s);
-                      setSymptomSelect(false);
-                    }}>
-                    {s}</p>
+                      let currentSymptoms = searchSymptom
+                        ? searchSymptom.split(",").map(symptom => symptom.trim()).filter(Boolean)
+                        : [];
+
+                      // Avoid duplicates
+                      if (!currentSymptoms.includes(s)) {
+                        currentSymptoms.push(s);
+                      }
+
+                      setSearchSymptom(currentSymptoms.length > 0 ? currentSymptoms.join(", ") + ", " : "");
+                      setSymptomSelect(true); // Keep dropdown open
+                    }}
+                  >
+                    {s}
+                  </p>
                 ))}
               </ul>
-            }
+            )}
           </div>
+
+
           <div className="form-group">
             <label className="label">Health Factors</label>
             <input
@@ -296,12 +370,14 @@ const App = () => {
               value={searchHealthFactor}
               onChange={(e) => {
                 setSearchHealthFactor(e.target.value);
+                setHealthFactorSelect(true);
               }}
               onClick={() => setHealthFactorSelect(true)}
               placeholder="e.g., diabetes, allergies"
               className="input"
             />
-            {healthFactorSelect && filteredHealthfactors.length > 0 &&
+
+            {healthFactorSelect && filteredHealthfactors.length > 0 && (
               <ul className='list-group' ref={hfDropdownRef}>
                 {filteredHealthfactors.map(hf => (
                   <p
@@ -309,16 +385,26 @@ const App = () => {
                     value={hf}
                     className="list-group-item"
                     onClick={() => {
-                      setSearchHealthFactor(hf);
-                      setSelectedHealthFactor(hf);  // Set the selected health factor
-                      setHealthFactorSelect(false);
-                    }
-                    }>
-                    {hf}</p>
+                      let currentHealthFactor = searchHealthFactor
+                        ? searchHealthFactor.split(",").map(factor => factor.trim()).filter(Boolean)
+                        : [];
+
+                      if (!currentHealthFactor.includes(hf)) {
+                        currentHealthFactor.push(hf);
+                      }
+
+                      setSearchHealthFactor(currentHealthFactor.length > 0 ? currentHealthFactor.join(", ") + ", " : "");
+                      setSelectedHealthFactor(currentHealthFactor.join(", "));
+                      setHealthFactorSelect(true);
+                    }}
+                  >
+                    {hf}
+                  </p>
                 ))}
               </ul>
-            }
+            )}
           </div>
+
           <div className="form-group">
             <label className="label">Age Group</label>
             <div value={ageGroup}
@@ -330,6 +416,9 @@ const App = () => {
                 <div
                   onClick={() => setAgeGroup("child")}
                   className="list-group-item2">child</div>
+                <div
+                  onClick={() => setAgeGroup("teenager")}
+                  className="list-group-item2">teenager</div>
                 <div
                   onClick={() => setAgeGroup("adult")}
                   className="list-group-item2">adult</div>
@@ -407,7 +496,7 @@ const App = () => {
       {response && (
         <div className="result-container">
           <div className="result-title">
-            <h3>Here’s a personalized remedy crafted just for you ✨</h3>
+            <h3>Here's a personalized remedy crafted just for you ✨</h3>
           </div>
           <div className="markdown">
             <ReactMarkdown>{response || "No data yet..."}</ReactMarkdown>
