@@ -1,70 +1,181 @@
-# Alternative-Medicine-Recommendation
+# Alternative Medicine Recommendation System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack web application that provides personalized alternative medicine recommendations based on user symptoms, health factors, and preferences. The system uses machine learning to suggest appropriate remedies and alternative medicines.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- User authentication and profile management
+- Symptom-based medicine recommendations
+- Alternative medicine search
+- Personalized recommendations based on:
+  - Multiple symptoms
+  - Health factors
+  - Age group
+  - Severity level
+  - User preferences
+- Real-time streaming recommendations
+- Modern and responsive UI
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.  
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Frontend
+- React.js
+- React Router
+- React Markdown
+- Papa Parse (CSV parsing)
+- CSS3
 
-The page will reload when you make changes.  
-You may also see any lint errors in the console.
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- JWT Authentication
+- Express Rate Limiter
+- Express Validator
 
-### `npm test`
+### Python Microservice
+- Python 3.x
+- Flask
+- Scikit-learn
+- Pandas
+- NumPy
 
-Launches the test runner in the interactive watch mode.  
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Prerequisites
 
-### `npm run build`
+- Node.js (v14 or higher)
+- Python 3.x
+- MongoDB
+- npm or yarn
 
-Builds the app for production to the `build` folder.  
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Installation
 
-The build is minified and the filenames include the hashes.  
-Your app is ready to be deployed!
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/Alternative-Medicine-Recommendation.git
+cd Alternative-Medicine-Recommendation
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install Frontend Dependencies:
+```bash
+npm install
+```
 
-### `npm run eject`
+3. Install Backend Dependencies:
+```bash
+cd backend
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Install Python Dependencies:
+```bash
+cd ../python_microservice
+pip install -r requirements.txt
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+5. Set up Environment Variables:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc.) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point, you're on your own.
+Create a `.env` file in the backend directory:
+```env
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+PORT=5001
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However, we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Project Structure
 
-## Learn More
+```
+Alternative-Medicine-Recommendation/
+├── backend/                 # Node.js backend
+│   ├── controller/         # Route controllers
+│   ├── middleware/         # Custom middleware
+│   ├── models/            # Database models
+│   ├── routes/            # API routes
+│   └── index.js           # Main server file
+├── python_microservice/    # ML recommendation service
+│   ├── app/               # Flask application
+│   ├── models/            # ML models
+│   └── train_model.py     # Model training script
+├── src/                   # React frontend
+│   ├── pages/            # React components
+│   ├── dataset/          # Medicine dataset
+│   └── App.js            # Main React component
+└── datasets/             # Raw datasets
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Running the Application
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Start the Backend Server:
+```bash
+cd backend
+npm start
+```
 
-### Code Splitting
+2. Start the Python Microservice:
+```bash
+cd python_microservice
+python app/app.py
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+3. Start the Frontend Development Server:
+```bash
+cd ../
+npm start
+```
 
-### Analyzing the Bundle Size
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5001
+- Python Microservice: http://localhost:5002
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Workflow
 
-### Making a Progressive Web App
+1. **User Authentication**:
+   - Users can register and login
+   - JWT tokens are used for authentication
+   - Profile management available
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+2. **Medicine Recommendations**:
+   - Users can input multiple symptoms
+   - Select relevant health factors
+   - Choose age group and severity
+   - Get personalized recommendations
 
-### Advanced Configuration
+3. **Alternative Medicine Search**:
+   - Search for conventional medicines
+   - Get alternative medicine suggestions
+   - View detailed information about alternatives
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+4. **ML-based Recommendations**:
+   - Python microservice processes requests
+   - Uses trained model for predictions
+   - Returns personalized recommendations
 
-### Deployment
+## API Endpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Authentication
+- POST `/api/auth/register` - User registration
+- POST `/api/auth/login` - User login
+- GET `/api/auth/profile` - Get user profile
+- POST `/api/auth/logout` - User logout
 
-### `npm run build` fails to minify
+### Recommendations
+- POST `/api/recommendations/stream` - Get streaming recommendations
+- POST `/api/alternative-medicines` - Search alternative medicines
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Dataset sources
+- Open-source libraries used
+- Contributors and maintainers
